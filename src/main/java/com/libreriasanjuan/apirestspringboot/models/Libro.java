@@ -1,8 +1,10 @@
 package com.libreriasanjuan.apirestspringboot.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "libros")
@@ -20,6 +22,10 @@ public class Libro {
     private String libroAutor;
     @Column(name = "libro_portada")
     private String libroPortada;
-    @Transient //Considerar implementar un DTO
+    @Transient
     private int libroCantidad;
+
+    @OneToMany(mappedBy = "libro", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<CompraLibro> compraLibros;
 }

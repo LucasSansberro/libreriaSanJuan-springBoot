@@ -1,10 +1,13 @@
 package com.libreriasanjuan.apirestspringboot.services;
 
+import com.libreriasanjuan.apirestspringboot.dto.LibrosMasVendidosDTO;
 import com.libreriasanjuan.apirestspringboot.exceptions.ResourceNotFoundException;
 import com.libreriasanjuan.apirestspringboot.models.Libro;
 import com.libreriasanjuan.apirestspringboot.repositories.LibroRepository;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.LibroService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,15 @@ public class LibroServiceImpl implements LibroService {
     public ResponseEntity<List<Libro>> getAllLibros() {
         List<Libro> libros = repositorio.findAll();
         return ResponseEntity.ok(libros);
+    }
+
+    @Override
+    public ResponseEntity<List<LibrosMasVendidosDTO>> getMasVendidos(){
+        int numeroPagina = 0;
+        int elementosPagina = 3;
+        Pageable pageable = PageRequest.of(numeroPagina, elementosPagina);
+        List<LibrosMasVendidosDTO> librosMasVendidos = repositorio.librosMasVendidos(pageable);
+        return ResponseEntity.ok(librosMasVendidos);
     }
 
     @Override

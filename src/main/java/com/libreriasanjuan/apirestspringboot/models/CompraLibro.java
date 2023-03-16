@@ -1,5 +1,6 @@
 package com.libreriasanjuan.apirestspringboot.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class CompraLibro {
     private Factura factura;
     @ManyToOne
     @JoinColumn(name = "libro_id", referencedColumnName = "libro_id")
+    @JsonBackReference
     private Libro libro;
     @Column(name="libro_cantidad")
     private Integer libroCantidad;

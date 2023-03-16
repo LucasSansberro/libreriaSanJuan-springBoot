@@ -37,6 +37,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public ResponseEntity<UsuarioDTO> getUserByMail(Usuario usuarioLogin) {
+        if (!usuarioLogin.getUsuarioCorreo().matches("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
+            throw new AuthenticationErrorException("Ingrese un correo válido");
+        }
+
         Usuario usuario = repositorio.findByUsuarioCorreo(usuarioLogin.getUsuarioCorreo()).orElseThrow(() -> new AuthenticationErrorException("Error de credenciales"));
         if (usuario.getUsuarioClave().equals(usuarioLogin.getUsuarioClave())) {
             UsuarioDTO usuarioDTO = this.usuarioMapper.BDaDTO(usuario);
@@ -48,9 +52,11 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public ResponseEntity<?> saveUser(Usuario usuarioRegistro) {
-        //TODO Agregar verificación de email (Puede ser regex)
         if (usuarioRegistro.getIsAdmin()) {
             throw new AuthenticationErrorException("Acceso no autorizado");
+        }
+        if (!usuarioRegistro.getUsuarioCorreo().matches("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
+            throw new AuthenticationErrorException("Ingrese un correo válido");
         }
         if (repositorio.findByUsuarioCorreo(usuarioRegistro.getUsuarioCorreo()).isEmpty()) {
             Usuario usuarioNuevo = repositorio.save(usuarioRegistro);
@@ -80,3 +86,5 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
 }
+
+//TODO Hacer testing y swagger

@@ -1,5 +1,6 @@
 package com.libreriasanjuan.apirestspringboot.controller;
 
+import com.libreriasanjuan.apirestspringboot.dto.LibrosMasVendidosDTO;
 import com.libreriasanjuan.apirestspringboot.models.Libro;
 import com.libreriasanjuan.apirestspringboot.services.LibroServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class LibroController {
         return libroServiceImpl.getAllLibros();
     }
 
+    @GetMapping("/librosMasVendidos")
+    public ResponseEntity<List<LibrosMasVendidosDTO>> getMasVendidos(){
+        return libroServiceImpl.getMasVendidos();
+    }
+
     @PostMapping("/libros")
     public ResponseEntity<?> saveLibro(@RequestBody Libro libro) {
         return libroServiceImpl.saveLibro(libro);
@@ -39,3 +45,5 @@ public class LibroController {
         return libroServiceImpl.deleteById(id);
     }
 }
+
+//TODO Pasar las responseEntity al controlador
