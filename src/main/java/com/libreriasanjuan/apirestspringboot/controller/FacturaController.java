@@ -4,6 +4,7 @@ import com.libreriasanjuan.apirestspringboot.dto.FacturaDTO;
 import com.libreriasanjuan.apirestspringboot.models.Factura;
 import com.libreriasanjuan.apirestspringboot.services.FacturaServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,8 @@ public class FacturaController {
 
     @PostMapping("/facturas")
     public ResponseEntity<Factura> saveFactura(@RequestBody FacturaDTO facturaDTO) {
-        return facturaServiceImpl.saveFactura(facturaDTO);
+        Factura factura = facturaServiceImpl.saveFactura(facturaDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(factura);
     }
 
 }

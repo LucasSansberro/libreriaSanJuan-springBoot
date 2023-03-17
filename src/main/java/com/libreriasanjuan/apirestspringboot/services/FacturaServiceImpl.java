@@ -10,8 +10,6 @@ import com.libreriasanjuan.apirestspringboot.repositories.FacturaRepository;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.FacturaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -33,7 +31,7 @@ public class FacturaServiceImpl implements FacturaService {
 
 
     @Override
-    public ResponseEntity<Factura> saveFactura(FacturaDTO facturaDTO) {
+    public Factura saveFactura(FacturaDTO facturaDTO) {
         Long usuarioId = facturaDTO.getUsuarioId();
         Usuario usuario = usuarioRepositorio.findById(usuarioId).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id:" + usuarioId));
         Factura factura = Factura.builder().usuario(usuario).precioTotal(facturaDTO.getPrecioTotal()).fecha(LocalDate.now()).build();
@@ -47,6 +45,6 @@ public class FacturaServiceImpl implements FacturaService {
                     .build();
             compraLibroRepository.save(libroComprado);
         });
-        return ResponseEntity.status(HttpStatus.CREATED).body(factura);
+        return factura;
     }
 }

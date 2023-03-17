@@ -2,19 +2,17 @@ package com.libreriasanjuan.apirestspringboot.services.interfaces;
 
 import com.libreriasanjuan.apirestspringboot.dto.UsuarioDTO;
 import com.libreriasanjuan.apirestspringboot.models.Usuario;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 public interface UsuarioService {
-    ResponseEntity<List<UsuarioDTO>> getAllUsers();
+    List<UsuarioDTO> getAllUsers();
 
-    ResponseEntity<UsuarioDTO> getUserByMail(Usuario usuarioLogin);
+    UsuarioDTO loginUser(Usuario usuarioLogin);
 
-    ResponseEntity<?> saveUser(Usuario usuarioRegistro);
+    UsuarioDTO saveUser(Usuario usuarioRegistro);
 
+    UsuarioDTO updateById(Long id, Usuario usuarioActualizado);
 
-    ResponseEntity<UsuarioDTO> updateById(Long id, Usuario usuarioActualizado);
-
-    ResponseEntity<UsuarioDTO> deleteById(Long id);
+    UsuarioDTO deleteById(Long id);
 }

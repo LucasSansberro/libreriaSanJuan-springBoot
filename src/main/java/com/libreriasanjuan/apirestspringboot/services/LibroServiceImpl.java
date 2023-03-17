@@ -8,8 +8,6 @@ import com.libreriasanjuan.apirestspringboot.services.interfaces.LibroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -26,49 +24,45 @@ public class LibroServiceImpl implements LibroService {
     }
 
     @Override
-    public ResponseEntity<List<Libro>> getAllLibros() {
-        List<Libro> libros = repositorio.findAll();
-        return ResponseEntity.ok(libros);
+    public List<Libro> getAllLibros() {
+        return repositorio.findAll();
     }
 
     @Override
-    public ResponseEntity<List<LibrosMasVendidosDTO>> getMasVendidos(){
+    public List<LibrosMasVendidosDTO> getMasVendidos() {
         int numeroPagina = 0;
         int elementosPagina = 3;
         Pageable pageable = PageRequest.of(numeroPagina, elementosPagina);
-        List<LibrosMasVendidosDTO> librosMasVendidos = repositorio.librosMasVendidos(pageable);
-        return ResponseEntity.ok(librosMasVendidos);
+        return repositorio.librosMasVendidos(pageable);
     }
 
     @Override
-    public ResponseEntity<?> saveLibro(Libro libro) {
+    public Libro saveLibro(Libro libro) {
         if (repositorio.findByLibroTitulo(libro.getLibroTitulo()).isEmpty()) {
-            Libro libroNuevo = repositorio.save(libro);
-            return ResponseEntity.status(HttpStatus.CREATED).body(libroNuevo);
+            return repositorio.save(libro);
         } else {
-            return ResponseEntity.badRequest().body("Ya existe un libro con ese título");
+            return null;
         }
     }
 
     @Override
-    public ResponseEntity<?> updateById(Long id, Libro libroActualizado) {
+    public Libro updateById(Long id, Libro libroActualizado) {
         Libro libro = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un libro con el id:" + id));
         if (repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).isEmpty() || id.equals(repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).get().getLibroId())) {
             libro.setLibroPrecio(libroActualizado.getLibroPrecio());
             libro.setLibroTitulo(libroActualizado.getLibroTitulo());
             libro.setLibroAutor(libroActualizado.getLibroAutor());
             libro.setLibroPortada(libroActualizado.getLibroPortada());
-            repositorio.save(libro);
-            return ResponseEntity.ok(libro);
+            return repositorio.save(libro);
         } else {
-            return ResponseEntity.badRequest().body("Ya existe un libro con ese título");
+            return null;
         }
     }
 
     @Override
-    public ResponseEntity<Libro> deleteById(Long id) {
+    public Libro deleteById(Long id) {
         Libro libro = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un libro con el id:" + id));
         repositorio.deleteById(id);
-        return ResponseEntity.ok(libro);
+        return libro;
     }
 }
