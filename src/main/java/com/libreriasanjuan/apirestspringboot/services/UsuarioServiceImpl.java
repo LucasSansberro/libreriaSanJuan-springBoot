@@ -64,10 +64,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioDTO updateById(Long id, Usuario usuarioActualizado) {
-        Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id:" + id));
+        Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id: " + id));
         usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
         usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
-        usuario.setIsAdmin(usuarioActualizado.getIsAdmin());
+        //TODO Probar si funciona sacando el admin, ahora que tiene un valor default
         return this.usuarioMapper.BDaDTO(usuario);
     }
 
@@ -80,4 +80,4 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 }
 
-//TODO Hacer testing, logger y swagger
+//TODO Hacer testing, logger, mapstruct y swagger
