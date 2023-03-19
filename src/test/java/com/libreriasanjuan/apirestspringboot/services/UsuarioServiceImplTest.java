@@ -6,18 +6,12 @@ import com.libreriasanjuan.apirestspringboot.exceptions.AuthenticationErrorExcep
 import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.UsuarioService;
-
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -35,34 +29,14 @@ class UsuarioServiceImplTest {
     }
 
     @BeforeEach
-    @Transactional
     void setUp() {
         this.usuarioRepositorio.save(DatosDummy.getUsuarioTest());
         this.usuarioRepositorio.save(DatosDummy.getUsuario2Test());
-        System.out.println(this.usuarioRepositorio.findAll());
     }
 
     @AfterEach
-    @Transactional
     void tearDown() {
         this.usuarioRepositorio.deleteAll();
-    }
-
-    @Test
-    void updateById() {
-        //GIVEN
-        Usuario usuarioOriginal = DatosDummy.getUsuarioTest();
-        String nuevoCorreo = "CambioCorreo@test.com";
-        String nuevaClave = "CambioClave";
-
-        //WHEN
-        Usuario usuarioEditado = new Usuario(usuarioOriginal.getUsuarioId(), nuevoCorreo, nuevaClave, usuarioOriginal.getIsAdmin());
-        UsuarioDTO usuarioPostEdit = this.usuarioService.updateById(usuarioEditado.getUsuarioId(), usuarioEditado);
-
-        //THEN
-        assertThatThrownBy(() -> this.usuarioService.updateById(7L, usuarioEditado)).isInstanceOf(RuntimeException.class);
-        assertThat(usuarioPostEdit.getUsuarioCorreo().equals(nuevoCorreo)).isTrue();
-        assertThat(usuarioPostEdit.getUsuarioId().equals(usuarioOriginal.getUsuarioId())).isTrue();
     }
 
     @Test
@@ -108,7 +82,7 @@ class UsuarioServiceImplTest {
         boolean isAdminUser = false;
         boolean isAdminAtacante = true;
         String invalidMail = "falsoMail.com";
-        Usuario usuarioExistente = DatosDummy.getUsuarioTest();
+        Usuario usuarioExistente = this.usuarioRepositorio.findAll().get(0);
 
         //WHEN
         Usuario usuarioFalsoAdmin = new Usuario(validId, validMail, validPassword, isAdminAtacante);
@@ -124,16 +98,37 @@ class UsuarioServiceImplTest {
         assertThat(this.usuarioService.saveUser(usuarioNuevo)).isInstanceOf(UsuarioDTO.class);
     }
 
+    @Test
+    void updateById() {
+        //GIVEN
+        Usuario usuarioOriginal = this.usuarioRepositorio.findAll().get(0);
+        String nuevoCorreo = "CambioCorreo@test.com";
+        String nuevaClave = "CambioClave";
+
+        //WHEN
+        Usuario usuarioEditado = new Usuario(usuarioOriginal.getUsuarioId(), nuevoCorreo, nuevaClave, usuarioOriginal.getIsAdmin());
+        UsuarioDTO usuarioPostEdit = this.usuarioService.updateById(usuarioOriginal.getUsuarioId(), usuarioEditado);
+
+        //THEN
+        assertThatThrownBy(() -> this.usuarioService.updateById(80L, usuarioEditado)).isInstanceOf(RuntimeException.class);
+        assertThat(usuarioPostEdit.getUsuarioCorreo().equals(nuevoCorreo)).isTrue();
+        assertThat(usuarioOriginal.getUsuarioId().equals(usuarioPostEdit.getUsuarioId())).isTrue();
+    }
 
     @Test
     void deleteById() {
         //GIVEN
-        System.out.println("Hola");
+        Usuario usuarioABorrar = this.usuarioRepositorio.findAll().get(0);
+        Long idUsuarioABorrar = usuarioABorrar.getUsuarioId();
+        Long idErroneo = 80L;
 
         //WHEN
+        UsuarioDTO usuarioBorrado = this.usuarioService.deleteById(idUsuarioABorrar);
 
 
         //THEN
-
+        assertThat(usuarioBorrado).isInstanceOf(UsuarioDTO.class);
+        assertThat(usuarioABorrar.getUsuarioCorreo().equals(usuarioBorrado.getUsuarioCorreo())).isTrue();
+        assertThatThrownBy(() -> this.usuarioService.deleteById(idErroneo));
     }
 }

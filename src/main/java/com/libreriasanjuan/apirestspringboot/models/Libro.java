@@ -1,7 +1,10 @@
 package com.libreriasanjuan.apirestspringboot.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -9,6 +12,9 @@ import java.util.List;
 @Entity
 @Table(name = "libros")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Libro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
