@@ -8,6 +8,7 @@ import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -39,10 +40,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         Usuario usuario = repositorio.findByUsuarioCorreo(usuarioLogin.getUsuarioCorreo()).orElseThrow(() -> new AuthenticationErrorException("Error de credenciales"));
-        if (usuario.getUsuarioClave().equals(usuarioLogin.getUsuarioClave())) {
-            return this.usuarioMapper.BDaDTO(usuario);
-        } else {
+
+        if (!usuario.getUsuarioClave().equals(usuarioLogin.getUsuarioClave())) {
             throw new AuthenticationErrorException("Error de credenciales");
+        } else {
+            return this.usuarioMapper.BDaDTO(usuario);
         }
     }
 
@@ -51,23 +53,27 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuarioRegistro.getIsAdmin()) {
             throw new AuthenticationErrorException("Acceso no autorizado");
         }
-        if (!usuarioRegistro.getUsuarioCorreo().matches("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
-            throw new AuthenticationErrorException("Ingrese un correo válido");
+        if (!usuarioRegistro.getUsuarioCorreo().matches("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$") || usuarioRegistro.getUsuarioClave().trim().length() < 1) {
+            throw new AuthenticationErrorException("Las credenciales ingresadas son inválidas");
         }
-        if (repositorio.findByUsuarioCorreo(usuarioRegistro.getUsuarioCorreo()).isEmpty()) {
+        if (repositorio.findByUsuarioCorreo(usuarioRegistro.getUsuarioCorreo()).isPresent()) {
+            throw new DataIntegrityViolationException("Ya existe un usuario con ese correo");
+        } else {
             Usuario usuarioNuevo = repositorio.save(usuarioRegistro);
             return this.usuarioMapper.BDaDTO(usuarioNuevo);
-        } else {
-            return null;
         }
     }
 
     @Override
     public UsuarioDTO updateById(Long id, Usuario usuarioActualizado) {
         Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id: " + id));
-        usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
-        usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
-        return this.usuarioMapper.BDaDTO(usuario);
+        if (repositorio.findByUsuarioCorreo(usuarioActualizado.getUsuarioCorreo()).isPresent() && !id.equals(repositorio.findByUsuarioCorreo(usuarioActualizado.getUsuarioCorreo()).get().getUsuarioId())) {
+            throw new DataIntegrityViolationException("Ya existe un usuario con ese correo");
+        } else {
+            usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
+            usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
+            return this.usuarioMapper.BDaDTO(usuario);
+        }
     }
 
     @Override
@@ -79,4 +85,4 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 }
 
-//TODO Hacer logger, mapstruct y swagger
+//TODO Hacer mapstruct y swagger

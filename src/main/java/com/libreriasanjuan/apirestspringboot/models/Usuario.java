@@ -18,7 +18,7 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="usuario_id")
     private Long usuarioId;
-    @Column(name="usuario_correo")
+    @Column(name="usuario_correo", unique = true)
     private String usuarioCorreo;
     @Column(name="usuario_clave")
     private String usuarioClave;

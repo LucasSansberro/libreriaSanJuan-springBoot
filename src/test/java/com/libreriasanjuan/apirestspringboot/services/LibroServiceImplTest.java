@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.Arrays;
@@ -76,11 +77,10 @@ class LibroServiceImplTest {
 
         //WHEN
         Libro libroCreado = this.libroService.saveLibro(libro1);
-        Libro libroNoCreado = this.libroService.saveLibro(libro2);
 
         //THEN
         assertThat(libroCreado).isInstanceOf(Libro.class);
-        assertThat(libroNoCreado).isEqualTo(null);
+        assertThatThrownBy(() -> this.libroService.saveLibro(libro2)).isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
@@ -94,11 +94,10 @@ class LibroServiceImplTest {
 
         //WHEN
         Libro libroCambiado = this.libroService.updateById(1L, libro1);
-        Libro libroErrorRepetido = this.libroService.updateById(2L, libro2);
 
         //THEN
         assertThat(libroCambiado).isInstanceOf(Libro.class);
-        assertThat(libroErrorRepetido).isEqualTo(null);
+        assertThatThrownBy(() -> this.libroService.updateById(2L, libro2)).isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(() -> this.libroService.updateById(80L, libro1)).isInstanceOf(RuntimeException.class);
     }
 

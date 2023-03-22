@@ -6,6 +6,7 @@ import com.libreriasanjuan.apirestspringboot.models.Libro;
 import com.libreriasanjuan.apirestspringboot.repositories.LibroRepository;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.LibroService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,24 +39,24 @@ public class LibroServiceImpl implements LibroService {
 
     @Override
     public Libro saveLibro(Libro libro) {
-        if (repositorio.findByLibroTitulo(libro.getLibroTitulo()).isEmpty()) {
-            return repositorio.save(libro);
+        if (repositorio.findByLibroTitulo(libro.getLibroTitulo()).isPresent()) {
+            throw new DataIntegrityViolationException("Ya existe un libro con ese título");
         } else {
-            return null;
+            return repositorio.save(libro);
         }
     }
 
     @Override
     public Libro updateById(Long id, Libro libroActualizado) {
         Libro libro = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un libro con el id:" + id));
-        if (repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).isEmpty() || id.equals(repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).get().getLibroId())) {
+        if (repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).isPresent() && !id.equals(repositorio.findByLibroTitulo(libroActualizado.getLibroTitulo()).get().getLibroId())) {
+            throw new DataIntegrityViolationException("Ya existe un libro con ese título");
+        } else {
             libro.setLibroPrecio(libroActualizado.getLibroPrecio());
             libro.setLibroTitulo(libroActualizado.getLibroTitulo());
             libro.setLibroAutor(libroActualizado.getLibroAutor());
             libro.setLibroPortada(libroActualizado.getLibroPortada());
             return repositorio.save(libro);
-        } else {
-            return null;
         }
     }
 

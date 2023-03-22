@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -112,7 +113,7 @@ class UsuarioServiceImplTest {
         //THEN
         assertThatThrownBy(() -> this.usuarioService.saveUser(usuarioFalsoAdmin)).isInstanceOf(AuthenticationErrorException.class);
         assertThatThrownBy(() -> this.usuarioService.saveUser(usuarioMailIncorrecto)).isInstanceOf(AuthenticationErrorException.class);
-        assertThat(this.usuarioService.saveUser(usuarioRepetido)).isEqualTo(null);
+        assertThatThrownBy(() -> this.usuarioService.saveUser(usuarioRepetido)).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(usuarioCreado).isInstanceOf(UsuarioDTO.class);
     }
 
@@ -121,17 +122,22 @@ class UsuarioServiceImplTest {
         //GIVEN
         String nuevoCorreo = "CambioCorreo@test.com";
         String nuevaClave = "CambioClave";
+        String correoIgualAlDeOtroUser = "correoRepetido@gmail.com";
 
         Usuario usuarioEditado = new Usuario(1L, nuevoCorreo, nuevaClave, false);
+        Usuario usuarioErrorMailRepetido = new Usuario(2L, correoIgualAlDeOtroUser, nuevaClave, false);
 
         when(usuarioMapper.BDaDTO(any(Usuario.class))).thenReturn(usuarioDTO1);
         when(usuarioRepositorio.findById(1L)).thenReturn(Optional.of(usuario1));
+        when(usuarioRepositorio.findById(2L)).thenReturn(Optional.of(usuarioErrorMailRepetido));
+        when(usuarioRepositorio.findByUsuarioCorreo(correoIgualAlDeOtroUser)).thenReturn(Optional.of(new Usuario()));
 
         //WHEN
         UsuarioDTO usuarioPostEdit = this.usuarioService.updateById(1L, usuarioEditado);
 
         //THEN
         assertThatThrownBy(() -> this.usuarioService.updateById(80L, usuarioEditado)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> this.usuarioService.updateById(1L, usuarioErrorMailRepetido)).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(usuarioPostEdit).isInstanceOf(UsuarioDTO.class);
     }
 
