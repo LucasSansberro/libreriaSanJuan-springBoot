@@ -4,6 +4,8 @@ import com.libreriasanjuan.apirestspringboot.dto.FacturaDTO;
 import com.libreriasanjuan.apirestspringboot.exceptions.ResourceNotFoundException;
 import com.libreriasanjuan.apirestspringboot.models.Factura;
 import com.libreriasanjuan.apirestspringboot.services.FacturaServiceImpl;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api")
 @Slf4j
+@Api(value = "Facturas", tags = "Generación de facturas")
 public class FacturaController {
 
     private final FacturaServiceImpl facturaServiceImpl;
@@ -25,6 +28,7 @@ public class FacturaController {
     }
 
     @PostMapping("/facturas")
+    @ApiOperation(value = "Generar una factura con los libros comprados")
     public ResponseEntity<?> saveFactura(@RequestBody FacturaDTO facturaDTO) {
         try {
             Factura factura = facturaServiceImpl.saveFactura(facturaDTO);
