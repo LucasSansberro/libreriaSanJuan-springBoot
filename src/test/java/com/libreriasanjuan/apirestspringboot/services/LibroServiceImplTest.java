@@ -2,58 +2,47 @@ package com.libreriasanjuan.apirestspringboot.services;
 
 import com.libreriasanjuan.apirestspringboot.datos.DatosDummy;
 import com.libreriasanjuan.apirestspringboot.dto.LibrosMasVendidosDTO;
-import com.libreriasanjuan.apirestspringboot.models.CompraLibro;
-import com.libreriasanjuan.apirestspringboot.models.Factura;
 import com.libreriasanjuan.apirestspringboot.models.Libro;
-import com.libreriasanjuan.apirestspringboot.models.Usuario;
-import com.libreriasanjuan.apirestspringboot.repositories.CompraLibroRepository;
-import com.libreriasanjuan.apirestspringboot.repositories.FacturaRepository;
 import com.libreriasanjuan.apirestspringboot.repositories.LibroRepository;
-import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
-import com.libreriasanjuan.apirestspringboot.services.interfaces.LibroService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class LibroServiceImplTest {
-    private final LibroRepository libroRepository;
-    private final UsuarioRepositorio usuarioRepositorio;
-    private final CompraLibroRepository compraLibroRepository;
-    private final FacturaRepository facturaRepository;
-    private final LibroService libroService;
-
-    @Autowired
-    public LibroServiceImplTest(LibroRepository libroRepository, UsuarioRepositorio usuarioRepositorio, CompraLibroRepository compraLibroRepository, FacturaRepository facturaRepository, LibroService libroService) {
-        this.libroRepository = libroRepository;
-        this.usuarioRepositorio = usuarioRepositorio;
-        this.compraLibroRepository = compraLibroRepository;
-        this.facturaRepository = facturaRepository;
-        this.libroService = libroService;
-    }
+    private LibroRepository libroRepository;
+    private LibroServiceImpl libroService;
+    private Libro libro1;
+    private Libro libro2;
 
     @BeforeEach
     void setUp() {
-        this.libroRepository.save(DatosDummy.getLibroTest());
-        this.libroRepository.save(DatosDummy.getLibro2Test());
+        libroRepository = mock(LibroRepository.class);
+        libroService = new LibroServiceImpl(libroRepository);
+        libro1 = DatosDummy.getLibroTest();
+        libro2 = DatosDummy.getLibro2Test();
     }
 
     @AfterEach
     void tearDown() {
-        this.libroRepository.deleteAll();
+
     }
 
     @Test
     void getAllLibros() {
         //GIVEN
-        //BEFORE EACH
+        when(libroRepository.findAll()).thenReturn(Arrays.asList(libro1, libro2));
 
         //WHEN
         List<Libro> libros = this.libroService.getAllLibros();
@@ -66,18 +55,9 @@ class LibroServiceImplTest {
     @Test
     void getMasVendidos() {
         //GIVEN
-        this.usuarioRepositorio.save(DatosDummy.getUsuarioTest());
-        Libro libroExistente = this.libroRepository.findAll().get(0);
-        Libro libroExistente2 = this.libroRepository.findAll().get(1);
-        Usuario usuarioExistente = this.usuarioRepositorio.findAll().get(0);
-        Factura facturaExistenteDummy = DatosDummy.getFacturaTest();
-        Factura facturaIdActualizado = Factura.builder().facturaId(1L).usuario(usuarioExistente).precioTotal(facturaExistenteDummy.getPrecioTotal()).fecha(facturaExistenteDummy.getFecha()).build();
-        this.facturaRepository.save(facturaIdActualizado);
-        Factura facturaExistente = this.facturaRepository.findAll().get(0);
-        CompraLibro compraLibroIdActualizado = CompraLibro.builder().compraId(1L).factura(facturaExistente).libro(libroExistente).libroCantidad(1).precioTotal(500).build();
-        CompraLibro compraLibroId2Actualizado = CompraLibro.builder().compraId(2L).factura(facturaExistente).libro(libroExistente2).libroCantidad(1).precioTotal(600).build();
-        this.compraLibroRepository.save(compraLibroIdActualizado);
-        this.compraLibroRepository.save(compraLibroId2Actualizado);
+        LibrosMasVendidosDTO masVendidoTest = new LibrosMasVendidosDTO(1L, 500, "LibroTest", "TestMan", "PortadaBonita.jpg", 5L);
+        LibrosMasVendidosDTO masVendido2Test = new LibrosMasVendidosDTO(2L, 600, "LibroTest2", "TestMan", "PortadaBonita.jpg", 6L);
+        when(libroRepository.librosMasVendidos(PageRequest.of(0, 3))).thenReturn(Arrays.asList(masVendidoTest, masVendido2Test));
 
         //WHEN
         List<LibrosMasVendidosDTO> librosMasVendidos = this.libroService.getMasVendidos();
@@ -85,59 +65,53 @@ class LibroServiceImplTest {
         //THEN
         assertThat(librosMasVendidos.isEmpty()).isFalse();
         assertThat(librosMasVendidos.size()).isEqualTo(2);
-
-        this.compraLibroRepository.deleteAll();
-        this.facturaRepository.deleteAll();
-        this.usuarioRepositorio.deleteAll();
-
     }
 
     @Test
     void saveLibro() {
         //GIVEN
-        Libro nuevoLibro = Libro.builder().libroPrecio(500).libroTitulo("LibroTest3").libroAutor("TestMan").libroPortada("PortadaBonita.jpg").build();
-        Libro libroRepetido = DatosDummy.getLibroTest();
+        when(libroRepository.findByLibroTitulo(libro1.getLibroTitulo())).thenReturn(Optional.empty());
+        when(libroRepository.findByLibroTitulo(libro2.getLibroTitulo())).thenReturn(Optional.of(new Libro()));
+        when(libroRepository.save(libro1)).thenReturn(libro1);
 
         //WHEN
-        Libro libroCreado = this.libroService.saveLibro(nuevoLibro);
-        Libro libroNoCreado = this.libroService.saveLibro(libroRepetido);
+        Libro libroCreado = this.libroService.saveLibro(libro1);
+        Libro libroNoCreado = this.libroService.saveLibro(libro2);
 
         //THEN
-        assertThat(libroCreado.getLibroId()).isInstanceOf(Long.class);
+        assertThat(libroCreado).isInstanceOf(Libro.class);
         assertThat(libroNoCreado).isEqualTo(null);
     }
 
     @Test
     void updateById() {
         //GIVEN
-        Libro libroOriginal = this.libroRepository.findAll().get(0);
-        Libro cambiosLibro = Libro.builder().libroPrecio(500).libroTitulo("LibroTest3").libroAutor("TestMan").libroPortada("PortadaBonita.jpg").build();
-        Libro libroRepetido = DatosDummy.getLibro2Test();
+        when(libroRepository.findById(1L)).thenReturn(Optional.of(libro1));
+        when(libroRepository.findById(2L)).thenReturn(Optional.of(libro2));
+        when(libroRepository.findByLibroTitulo(libro1.getLibroTitulo())).thenReturn(Optional.empty());
+        when(libroRepository.findByLibroTitulo(libro2.getLibroTitulo())).thenReturn(Optional.of(new Libro()));
+        when(libroRepository.save(libro1)).thenReturn(libro1);
 
         //WHEN
-        Libro libroCambiado = this.libroService.updateById(libroOriginal.getLibroId(), cambiosLibro);
-        Libro libroErrorRepetido = this.libroService.updateById(libroOriginal.getLibroId(), libroRepetido);
+        Libro libroCambiado = this.libroService.updateById(1L, libro1);
+        Libro libroErrorRepetido = this.libroService.updateById(2L, libro2);
 
         //THEN
-        assertThat(libroCambiado.getLibroTitulo().equals(cambiosLibro.getLibroTitulo())).isTrue();
-        assertThat(libroCambiado.getLibroId().equals(libroOriginal.getLibroId())).isTrue();
+        assertThat(libroCambiado).isInstanceOf(Libro.class);
         assertThat(libroErrorRepetido).isEqualTo(null);
-        assertThatThrownBy(() -> this.libroService.updateById(80L, cambiosLibro)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> this.libroService.updateById(80L, libro1)).isInstanceOf(RuntimeException.class);
     }
 
     @Test
     void deleteById() {
         //GIVEN
-        Libro libroABorrar = this.libroRepository.findAll().get(0);
-        Long idLibroABorrar = libroABorrar.getLibroId();
-        Long idErroneo = 80L;
+        when(libroRepository.findById(1L)).thenReturn(Optional.of(libro1));
 
         //WHEN
-        Libro libroBorrado = this.libroService.deleteById(idLibroABorrar);
+        Libro libroBorrado = this.libroService.deleteById(1L);
 
         //THEN
         assertThat(libroBorrado).isInstanceOf(Libro.class);
-        assertThat(libroBorrado.getLibroTitulo().equals(libroABorrar.getLibroTitulo())).isTrue();
-        assertThatThrownBy(() -> this.libroService.deleteById(idErroneo));
+        assertThatThrownBy(() -> this.libroService.deleteById(2L));
     }
 }

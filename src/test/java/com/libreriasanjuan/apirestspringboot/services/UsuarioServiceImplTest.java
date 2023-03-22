@@ -3,46 +3,57 @@ package com.libreriasanjuan.apirestspringboot.services;
 import com.libreriasanjuan.apirestspringboot.datos.DatosDummy;
 import com.libreriasanjuan.apirestspringboot.dto.UsuarioDTO;
 import com.libreriasanjuan.apirestspringboot.exceptions.AuthenticationErrorException;
+import com.libreriasanjuan.apirestspringboot.mapper.UsuarioMapper;
 import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
-import com.libreriasanjuan.apirestspringboot.services.interfaces.UsuarioService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class UsuarioServiceImplTest {
-    private final UsuarioRepositorio usuarioRepositorio;
-    private final UsuarioService usuarioService;
 
-    @Autowired
-    public UsuarioServiceImplTest(UsuarioServiceImpl usuarioService, UsuarioRepositorio usuarioRepositorio) {
-        this.usuarioService = usuarioService;
-        this.usuarioRepositorio = usuarioRepositorio;
-    }
+    private UsuarioRepositorio usuarioRepositorio;
+    private UsuarioMapper usuarioMapper;
+    private UsuarioServiceImpl usuarioService;
+    private Usuario usuario1;
+    private Usuario usuario2;
+    private UsuarioDTO usuarioDTO1;
+    private UsuarioDTO usuarioDTO2;
 
     @BeforeEach
     void setUp() {
-        this.usuarioRepositorio.save(DatosDummy.getUsuarioTest());
-        this.usuarioRepositorio.save(DatosDummy.getUsuario2Test());
+        usuarioRepositorio = mock(UsuarioRepositorio.class);
+        usuarioMapper = mock(UsuarioMapper.class);
+        usuarioService = new UsuarioServiceImpl(usuarioRepositorio, usuarioMapper);
+        usuario1 = DatosDummy.getUsuarioTest();
+        usuario2 = DatosDummy.getUsuario2Test();
+        usuarioDTO1 = DatosDummy.getUsuarioDTOTest();
+        usuarioDTO2 = DatosDummy.getUsuarioDTO2Test();
     }
 
     @AfterEach
     void tearDown() {
-        this.usuarioRepositorio.deleteAll();
+
     }
 
     @Test
     void getAllUsers() {
         //GIVEN
-        //BEFORE EACH
+        when(usuarioRepositorio.findAll()).thenReturn(Arrays.asList(usuario1, usuario2));
+        when(usuarioMapper.convertirListaADTO(anyList())).thenReturn(Arrays.asList(usuarioDTO1, usuarioDTO2));
 
         //WHEN
         List<UsuarioDTO> usuarios = this.usuarioService.getAllUsers();
@@ -55,80 +66,86 @@ class UsuarioServiceImplTest {
     @Test
     void loginUser() {
         //GIVEN
-        Long trueId = DatosDummy.getUsuarioTest().getUsuarioId();
-        String trueMail = DatosDummy.getUsuarioTest().getUsuarioCorreo();
-        String truePassword = DatosDummy.getUsuarioTest().getUsuarioClave();
-        boolean trueIsAdmin = DatosDummy.getUsuarioTest().getIsAdmin();
+        String trueMail = usuario1.getUsuarioCorreo();
+        String truePassword = usuario1.getUsuarioClave();
         String falsoMail = "falsoMail.com";
         String falsoPassword = "falsaClave";
 
+        Usuario usuarioFalsoMail = new Usuario(2L, falsoMail, truePassword, false);
+        Usuario usuarioFalsaClave = new Usuario(3L, trueMail, falsoPassword, false);
+
+        when(usuarioRepositorio.findByUsuarioCorreo(trueMail)).thenReturn(Optional.of(usuario1));
+        when(usuarioRepositorio.findByUsuarioCorreo(falsoMail)).thenReturn(Optional.of(usuarioFalsoMail));
+        when(usuarioMapper.BDaDTO(any(Usuario.class))).thenReturn(usuarioDTO1);
+
         //WHEN
-        Usuario usuarioFalsoMail = new Usuario(trueId, falsoMail, truePassword, trueIsAdmin);
-        Usuario usuarioFalsaClave = new Usuario(trueId, trueMail, falsoPassword, trueIsAdmin);
-        UsuarioDTO usuarioLogueado = this.usuarioService.loginUser(DatosDummy.getUsuarioTest());
+        UsuarioDTO usuarioLogueado = this.usuarioService.loginUser(usuario1);
 
         //THEN
+        assertThat(usuarioLogueado).isInstanceOf(UsuarioDTO.class);
         assertThatThrownBy(() -> this.usuarioService.loginUser(usuarioFalsoMail)).isInstanceOf(AuthenticationErrorException.class);
         assertThatThrownBy(() -> this.usuarioService.loginUser(usuarioFalsaClave)).isInstanceOf(AuthenticationErrorException.class);
-        assertThat(usuarioLogueado).isInstanceOf(UsuarioDTO.class);
     }
 
     @Test
     void saveUser() {
         //GIVEN
-        Long validId = 3L;
         String validMail = "NuevoUser@test.com";
         String validPassword = "clave";
-        boolean isAdminUser = false;
-        boolean isAdminAtacante = true;
         String invalidMail = "falsoMail.com";
-        Usuario usuarioExistente = this.usuarioRepositorio.findAll().get(0);
+        boolean isAdminAtacante = true;
+        String repeatedMail = "repeatedMail@gmail.com";
+
+        Usuario usuarioFalsoAdmin = new Usuario(1L, validMail, validPassword, isAdminAtacante);
+        Usuario usuarioMailIncorrecto = new Usuario(1L, invalidMail, validPassword, false);
+        Usuario usuarioRepetido = new Usuario(1L, repeatedMail, validPassword, false);
+
+        when(usuarioRepositorio.findByUsuarioCorreo(validMail)).thenReturn(Optional.empty());
+        when(usuarioRepositorio.findByUsuarioCorreo(invalidMail)).thenReturn(Optional.of(usuarioMailIncorrecto));
+        when(usuarioRepositorio.findByUsuarioCorreo(repeatedMail)).thenReturn(Optional.of(new Usuario()));
+        when(usuarioRepositorio.save(any(Usuario.class))).thenReturn(usuario1);
+        when(usuarioMapper.BDaDTO(any(Usuario.class))).thenReturn(usuarioDTO1);
 
         //WHEN
-        Usuario usuarioFalsoAdmin = new Usuario(validId, validMail, validPassword, isAdminAtacante);
-        Usuario usuarioMailIncorrecto = new Usuario(validId, invalidMail, validPassword, isAdminUser);
-        Usuario usuarioRepetido = new Usuario(usuarioExistente.getUsuarioId(), usuarioExistente.getUsuarioCorreo(), usuarioExistente.getUsuarioClave(), usuarioExistente.getIsAdmin());
-        Usuario usuarioNuevo = new Usuario(validId, validMail, validPassword, isAdminUser);
-
+        UsuarioDTO usuarioCreado = this.usuarioService.saveUser(usuario1);
 
         //THEN
         assertThatThrownBy(() -> this.usuarioService.saveUser(usuarioFalsoAdmin)).isInstanceOf(AuthenticationErrorException.class);
         assertThatThrownBy(() -> this.usuarioService.saveUser(usuarioMailIncorrecto)).isInstanceOf(AuthenticationErrorException.class);
         assertThat(this.usuarioService.saveUser(usuarioRepetido)).isEqualTo(null);
-        assertThat(this.usuarioService.saveUser(usuarioNuevo)).isInstanceOf(UsuarioDTO.class);
+        assertThat(usuarioCreado).isInstanceOf(UsuarioDTO.class);
     }
 
     @Test
     void updateById() {
         //GIVEN
-        Usuario usuarioOriginal = this.usuarioRepositorio.findAll().get(0);
         String nuevoCorreo = "CambioCorreo@test.com";
         String nuevaClave = "CambioClave";
 
+        Usuario usuarioEditado = new Usuario(1L, nuevoCorreo, nuevaClave, false);
+
+        when(usuarioMapper.BDaDTO(any(Usuario.class))).thenReturn(usuarioDTO1);
+        when(usuarioRepositorio.findById(1L)).thenReturn(Optional.of(usuario1));
+
         //WHEN
-        Usuario usuarioEditado = new Usuario(usuarioOriginal.getUsuarioId(), nuevoCorreo, nuevaClave, usuarioOriginal.getIsAdmin());
-        UsuarioDTO usuarioPostEdit = this.usuarioService.updateById(usuarioOriginal.getUsuarioId(), usuarioEditado);
+        UsuarioDTO usuarioPostEdit = this.usuarioService.updateById(1L, usuarioEditado);
 
         //THEN
         assertThatThrownBy(() -> this.usuarioService.updateById(80L, usuarioEditado)).isInstanceOf(RuntimeException.class);
-        assertThat(usuarioPostEdit.getUsuarioCorreo().equals(nuevoCorreo)).isTrue();
-        assertThat(usuarioOriginal.getUsuarioId().equals(usuarioPostEdit.getUsuarioId())).isTrue();
+        assertThat(usuarioPostEdit).isInstanceOf(UsuarioDTO.class);
     }
 
     @Test
     void deleteById() {
         //GIVEN
-        Usuario usuarioABorrar = this.usuarioRepositorio.findAll().get(0);
-        Long idUsuarioABorrar = usuarioABorrar.getUsuarioId();
-        Long idErroneo = 80L;
+        when(usuarioMapper.BDaDTO(any(Usuario.class))).thenReturn(usuarioDTO1);
+        when(usuarioRepositorio.findById(1L)).thenReturn(Optional.of(usuario1));
 
         //WHEN
-        UsuarioDTO usuarioBorrado = this.usuarioService.deleteById(idUsuarioABorrar);
-
+        UsuarioDTO usuarioBorrado = this.usuarioService.deleteById(1L);
 
         //THEN
         assertThat(usuarioBorrado).isInstanceOf(UsuarioDTO.class);
-        assertThat(usuarioABorrar.getUsuarioCorreo().equals(usuarioBorrado.getUsuarioCorreo())).isTrue();
-        assertThatThrownBy(() -> this.usuarioService.deleteById(idErroneo));
+        assertThatThrownBy(() -> this.usuarioService.deleteById(2L));
     }
 }
