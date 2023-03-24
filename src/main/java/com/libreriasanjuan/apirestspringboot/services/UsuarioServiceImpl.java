@@ -84,5 +84,3 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
 }
-
-//TODO Hacer mapstruct y swagger

@@ -97,5 +97,3 @@ public class UsuarioController {
 
     }
 }
-
-//TODO Hacer un objeto de response
