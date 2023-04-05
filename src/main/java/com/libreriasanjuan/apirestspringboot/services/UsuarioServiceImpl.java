@@ -7,6 +7,7 @@ import com.libreriasanjuan.apirestspringboot.mapper.UsuarioMapper;
 import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.UsuarioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@Slf4j
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepositorio repositorio;
@@ -44,6 +46,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (!usuario.getUsuarioClave().equals(usuarioLogin.getUsuarioClave())) {
             throw new AuthenticationErrorException("Error de credenciales");
         } else {
+            log.info("Usuario logueado: " + usuarioLogin);
             return this.usuarioMapper.BDaDTO(usuario);
         }
     }
@@ -60,6 +63,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new DataIntegrityViolationException("Ya existe un usuario con ese correo");
         } else {
             Usuario usuarioNuevo = repositorio.save(usuarioRegistro);
+            log.info("Usuario registrado: " + usuarioNuevo);
             return this.usuarioMapper.BDaDTO(usuarioNuevo);
         }
     }
@@ -72,6 +76,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         } else {
             usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
             usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
+            log.info("Usuario con ID " + id + " actualizado: " + usuario);
             return this.usuarioMapper.BDaDTO(usuario);
         }
     }
@@ -80,6 +85,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioDTO deleteById(Long id) {
         Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id:" + id));
         repositorio.deleteById(id);
+        log.info("Usuario con ID " + id + " eliminado");
         return this.usuarioMapper.BDaDTO(usuario);
     }
 

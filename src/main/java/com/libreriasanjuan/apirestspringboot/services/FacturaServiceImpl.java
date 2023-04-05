@@ -9,6 +9,7 @@ import com.libreriasanjuan.apirestspringboot.repositories.CompraLibroRepository;
 import com.libreriasanjuan.apirestspringboot.repositories.FacturaRepository;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.FacturaService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 
 @Service
 @Transactional
+@Slf4j
 public class FacturaServiceImpl implements FacturaService {
     private final UsuarioRepositorio usuarioRepositorio;
     private final FacturaRepository facturaRepository;
@@ -45,6 +47,7 @@ public class FacturaServiceImpl implements FacturaService {
                     .build();
             compraLibroRepository.save(libroComprado);
         });
+        log.info("Factura creada: " + factura);
         return factura;
     }
 }

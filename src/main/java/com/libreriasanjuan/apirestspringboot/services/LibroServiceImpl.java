@@ -5,6 +5,7 @@ import com.libreriasanjuan.apirestspringboot.exceptions.ResourceNotFoundExceptio
 import com.libreriasanjuan.apirestspringboot.models.Libro;
 import com.libreriasanjuan.apirestspringboot.repositories.LibroRepository;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.LibroService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@Slf4j
 public class LibroServiceImpl implements LibroService {
     private final LibroRepository repositorio;
 
@@ -42,6 +44,7 @@ public class LibroServiceImpl implements LibroService {
         if (repositorio.findByLibroTitulo(libro.getLibroTitulo()).isPresent()) {
             throw new DataIntegrityViolationException("Ya existe un libro con ese título");
         } else {
+            log.info("Nuevo libro creado: " + libro);
             return repositorio.save(libro);
         }
     }
@@ -56,6 +59,7 @@ public class LibroServiceImpl implements LibroService {
             libro.setLibroTitulo(libroActualizado.getLibroTitulo());
             libro.setLibroAutor(libroActualizado.getLibroAutor());
             libro.setLibroPortada(libroActualizado.getLibroPortada());
+            log.info("Libro con ID " + id + " actualizado: " + libro);
             return repositorio.save(libro);
         }
     }
@@ -64,6 +68,7 @@ public class LibroServiceImpl implements LibroService {
     public Libro deleteById(Long id) {
         Libro libro = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un libro con el id:" + id));
         repositorio.deleteById(id);
+        log.info("Libro con ID " + id + " eliminado");
         return libro;
     }
 }

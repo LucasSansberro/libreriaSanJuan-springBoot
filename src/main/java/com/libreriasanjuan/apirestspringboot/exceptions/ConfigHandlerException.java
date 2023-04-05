@@ -34,6 +34,6 @@ public class ConfigHandlerException {
     @ExceptionHandler(ResourceNotFoundException.class)
     protected ResponseEntity<?> handleAuthenticationErrorException(ResourceNotFoundException ex, HandlerMethod handlerMethod) {
         log.warn("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
-        return ResponseEntity.badRequest().body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }
