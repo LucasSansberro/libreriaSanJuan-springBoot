@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -40,60 +39,33 @@ public class UsuarioController {
 
     @PostMapping("/usuarios/login")
     @ApiOperation(value = "Iniciar sesión")
-    public ResponseEntity<?> loginUser(@RequestBody Usuario usuarioLogin) {
-        try {
-            UsuarioDTO userLogueado = usuarioServiceImpl.loginUser(usuarioLogin);
-            log.info("Usuario logueado: " + usuarioLogin);
-            return ResponseEntity.ok(userLogueado);
-        } catch (AuthenticationErrorException error) {
-            log.warn("Error durante el login: " + error);
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
-
+    public ResponseEntity<UsuarioDTO> loginUser(@RequestBody Usuario usuarioLogin) throws AuthenticationErrorException {
+        UsuarioDTO userLogueado = usuarioServiceImpl.loginUser(usuarioLogin);
+        log.info("Usuario logueado: " + usuarioLogin);
+        return ResponseEntity.ok(userLogueado);
     }
 
     @PostMapping("/usuarios")
     @ApiOperation(value = "Registrar a un usuario")
-    public ResponseEntity<?> saveUser(@RequestBody Usuario usuarioRegistro) {
-        try {
-            UsuarioDTO usuarioRegistrado = usuarioServiceImpl.saveUser(usuarioRegistro);
-            log.info("Usuario registrado: " + usuarioRegistrado);
-            return ResponseEntity.status(HttpStatus.CREATED).body(usuarioRegistrado);
-        } catch (AuthenticationErrorException | DataIntegrityViolationException error) {
-            if (Objects.equals(error.getMessage(), "Acceso no autorizado")) {
-                log.error("Posible ataque en la creación de usuario: " + error);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error.getMessage());
-            } else {
-                log.warn("Error creando un usuario: " + error);
-                return ResponseEntity.badRequest().body(error.getMessage());
-            }
-        }
+    public ResponseEntity<UsuarioDTO> saveUser(@RequestBody Usuario usuarioRegistro) throws AuthenticationErrorException, DataIntegrityViolationException {
+        UsuarioDTO usuarioRegistrado = usuarioServiceImpl.saveUser(usuarioRegistro);
+        log.info("Usuario registrado: " + usuarioRegistrado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioRegistrado);
     }
 
     @PutMapping("/usuarios/{id}")
     @ApiOperation(value = "Editar a un usuario")
-    public ResponseEntity<?> updateById(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) {
-        try {
-            UsuarioDTO userActualizado = usuarioServiceImpl.updateById(id, usuarioActualizado);
-            log.info("Usuario con ID " + id + " actualizado: " + userActualizado);
-            return ResponseEntity.ok(userActualizado);
-        } catch (ResourceNotFoundException | DataIntegrityViolationException error) {
-            log.warn("Error al actualizar el usuario con ID: " + id + " - " + error.getMessage());
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
+    public ResponseEntity<UsuarioDTO> updateById(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) throws AuthenticationErrorException, DataIntegrityViolationException {
+        UsuarioDTO userActualizado = usuarioServiceImpl.updateById(id, usuarioActualizado);
+        log.info("Usuario con ID " + id + " actualizado: " + userActualizado);
+        return ResponseEntity.ok(userActualizado);
     }
 
     @DeleteMapping("/usuarios/{id}")
     @ApiOperation(value = "Eliminar a un usuario")
-    public ResponseEntity<?> deleteById(@PathVariable Long id) {
-        try {
-            UsuarioDTO usuarioEliminado = usuarioServiceImpl.deleteById(id);
-            log.info("Usuario con ID " + id + " eliminado");
-            return ResponseEntity.ok(usuarioEliminado);
-        } catch (ResourceNotFoundException error) {
-            log.warn("Error al eliminar el usuario con ID: " + id + " - " + error.getMessage());
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
-
+    public ResponseEntity<UsuarioDTO> deleteById(@PathVariable Long id) throws ResourceNotFoundException {
+        UsuarioDTO usuarioEliminado = usuarioServiceImpl.deleteById(id);
+        log.info("Usuario con ID " + id + " eliminado");
+        return ResponseEntity.ok(usuarioEliminado);
     }
 }

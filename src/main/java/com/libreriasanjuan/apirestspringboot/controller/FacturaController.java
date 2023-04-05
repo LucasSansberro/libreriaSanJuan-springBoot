@@ -29,16 +29,10 @@ public class FacturaController {
 
     @PostMapping("/facturas")
     @ApiOperation(value = "Generar una factura con los libros comprados")
-    public ResponseEntity<?> saveFactura(@RequestBody FacturaDTO facturaDTO) {
-        try {
-            Factura factura = facturaServiceImpl.saveFactura(facturaDTO);
-            log.info("Factura creada: " + factura);
-            return ResponseEntity.status(HttpStatus.CREATED).body(factura);
-        } catch (ResourceNotFoundException error) {
-            log.warn("Error al crear una factura: " + error.getMessage());
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
-
+    public ResponseEntity<Factura> saveFactura(@RequestBody FacturaDTO facturaDTO) throws ResourceNotFoundException {
+        Factura factura = facturaServiceImpl.saveFactura(facturaDTO);
+        log.info("Factura creada: " + factura);
+        return ResponseEntity.status(HttpStatus.CREATED).body(factura);
     }
 
 }

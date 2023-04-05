@@ -44,41 +44,25 @@ public class LibroController {
 
     @PostMapping("/libros")
     @ApiOperation(value = "Crear un nuevo libro")
-    public ResponseEntity<?> saveLibro(@RequestBody Libro libro) {
-        try {
-            Libro libroNuevo = libroServiceImpl.saveLibro(libro);
-            log.info("Nuevo libro creado: " + libroNuevo);
-            return ResponseEntity.status(HttpStatus.CREATED).body(libroNuevo);
-        } catch (DataIntegrityViolationException error) {
-            log.warn("Error creando libro: " + error.getMessage());
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
+    public ResponseEntity<Libro> saveLibro(@RequestBody Libro libro) throws DataIntegrityViolationException {
+        Libro libroNuevo = libroServiceImpl.saveLibro(libro);
+        log.info("Nuevo libro creado: " + libroNuevo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(libroNuevo);
     }
 
     @PutMapping("/libros/{id}")
     @ApiOperation(value = "Editar un libro")
-    public ResponseEntity<?> updateById(@PathVariable Long id, @RequestBody Libro libroActualizado) {
-        try {
-            Libro libro = libroServiceImpl.updateById(id, libroActualizado);
-            log.info("Libro con ID " + id + " actualizado: " + libro);
-            return ResponseEntity.ok(libro);
-        } catch (ResourceNotFoundException | DataIntegrityViolationException error) {
-            log.warn("Error al actualizar el libro con ID: " + id + " - " + error.getMessage());
-            return ResponseEntity.badRequest().body("Ya existe un libro con ese título");
-        }
+    public ResponseEntity<Libro> updateById(@PathVariable Long id, @RequestBody Libro libroActualizado) throws ResourceNotFoundException, DataIntegrityViolationException {
+        Libro libro = libroServiceImpl.updateById(id, libroActualizado);
+        log.info("Libro con ID " + id + " actualizado: " + libro);
+        return ResponseEntity.ok(libro);
     }
 
     @DeleteMapping("/libros/{id}")
     @ApiOperation(value = "Eliminar un libro")
-    public ResponseEntity<?> deleteById(@PathVariable Long id) {
-        try {
-            Libro libro = libroServiceImpl.deleteById(id);
-            log.info("Libro con ID " + id + " eliminado");
-            return ResponseEntity.ok(libro);
-        } catch (ResourceNotFoundException error) {
-            log.warn("Error al eliminar el libro con ID: " + id + " - " + error.getMessage());
-            return ResponseEntity.badRequest().body(error.getMessage());
-        }
-
+    public ResponseEntity<Libro> deleteById(@PathVariable Long id) throws ResourceNotFoundException {
+        Libro libro = libroServiceImpl.deleteById(id);
+        log.info("Libro con ID " + id + " eliminado");
+        return ResponseEntity.ok(libro);
     }
 }
