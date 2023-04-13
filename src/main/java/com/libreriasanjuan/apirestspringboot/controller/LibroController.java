@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PersistenceException;
 import java.util.List;
 
 @RestController
@@ -37,19 +38,19 @@ public class LibroController {
 
     @PostMapping("/libros")
     @ApiOperation(value = "Crear un nuevo libro")
-    public ResponseEntity<LibroResponse> saveLibro(@RequestBody Libro libro) throws DataIntegrityViolationException {
+    public ResponseEntity<LibroResponse> saveLibro(@RequestBody Libro libro) throws DataIntegrityViolationException, PersistenceException {
         return ResponseEntity.status(HttpStatus.CREATED).body(libroServiceImpl.saveLibro(libro));
     }
 
     @PutMapping("/libros/{id}")
     @ApiOperation(value = "Editar un libro")
-    public ResponseEntity<LibroResponse> updateById(@PathVariable Long id, @RequestBody Libro libroActualizado) throws ResourceNotFoundException, DataIntegrityViolationException {
+    public ResponseEntity<LibroResponse> updateById(@PathVariable Long id, @RequestBody Libro libroActualizado) throws ResourceNotFoundException, DataIntegrityViolationException, PersistenceException {
         return ResponseEntity.ok(libroServiceImpl.updateById(id, libroActualizado));
     }
 
     @DeleteMapping("/libros/{id}")
     @ApiOperation(value = "Eliminar un libro")
-    public ResponseEntity<LibroResponse> deleteById(@PathVariable Long id) throws ResourceNotFoundException {
+    public ResponseEntity<LibroResponse> deleteById(@PathVariable Long id) throws ResourceNotFoundException, PersistenceException {
         return ResponseEntity.ok(libroServiceImpl.deleteById(id));
     }
 }

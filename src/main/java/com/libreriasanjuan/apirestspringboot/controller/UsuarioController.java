@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PersistenceException;
 import java.util.List;
 
 
@@ -39,19 +40,19 @@ public class UsuarioController {
 
     @PostMapping("/usuarios")
     @ApiOperation(value = "Registrar a un usuario")
-    public ResponseEntity<UsuarioDTO> saveUser(@RequestBody Usuario usuarioRegistro) throws AuthenticationErrorException, DataIntegrityViolationException {
+    public ResponseEntity<UsuarioDTO> saveUser(@RequestBody Usuario usuarioRegistro) throws AuthenticationErrorException, DataIntegrityViolationException, PersistenceException {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioServiceImpl.saveUser(usuarioRegistro));
     }
 
     @PutMapping("/usuarios/{id}")
     @ApiOperation(value = "Editar a un usuario")
-    public ResponseEntity<UsuarioDTO> updateById(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) throws AuthenticationErrorException, DataIntegrityViolationException {
+    public ResponseEntity<UsuarioDTO> updateById(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) throws AuthenticationErrorException, DataIntegrityViolationException, PersistenceException {
         return ResponseEntity.ok(usuarioServiceImpl.updateById(id, usuarioActualizado));
     }
 
     @DeleteMapping("/usuarios/{id}")
     @ApiOperation(value = "Eliminar a un usuario")
-    public ResponseEntity<UsuarioDTO> deleteById(@PathVariable Long id) throws ResourceNotFoundException {
+    public ResponseEntity<UsuarioDTO> deleteById(@PathVariable Long id) throws ResourceNotFoundException, PersistenceException {
         return ResponseEntity.ok(usuarioServiceImpl.deleteById(id));
     }
 }

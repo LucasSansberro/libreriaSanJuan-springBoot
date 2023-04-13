@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PersistenceException;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class FacturaController {
 
     @PostMapping("/facturas")
     @ApiOperation(value = "Generar una factura con los libros comprados")
-    public ResponseEntity<FacturaResponse> saveFactura(@RequestBody FacturaDTO facturaDTO) throws ResourceNotFoundException {
+    public ResponseEntity<FacturaResponse> saveFactura(@RequestBody FacturaDTO facturaDTO) throws ResourceNotFoundException, PersistenceException {
         return ResponseEntity.status(HttpStatus.CREATED).body(facturaServiceImpl.saveFactura(facturaDTO));
     }
 

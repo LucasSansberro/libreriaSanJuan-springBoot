@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.HandlerMethod;
 
+import javax.persistence.PersistenceException;
 import java.util.Objects;
 
 
@@ -35,5 +36,10 @@ public class ConfigHandlerException {
     protected ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex, HandlerMethod handlerMethod) {
         log.warn("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+    @ExceptionHandler(PersistenceException.class)
+    protected ResponseEntity<String> handleResourceNotFoundException(PersistenceException ex, HandlerMethod handlerMethod) {
+        log.error("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 }
