@@ -7,27 +7,22 @@ import com.libreriasanjuan.apirestspringboot.mapper.UsuarioMapper;
 import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.repositories.UsuarioRepositorio;
 import com.libreriasanjuan.apirestspringboot.services.interfaces.UsuarioService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepositorio repositorio;
     private final UsuarioMapper usuarioMapper;
-
-    @Autowired
-    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio, UsuarioMapper usuarioMapper) {
-        this.repositorio = usuarioRepositorio;
-        this.usuarioMapper = usuarioMapper;
-    }
 
     @Override
     public List<UsuarioDTO> getAllUsers() {
@@ -51,6 +46,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
     }
 
+    @Transactional
     @Override
     public UsuarioDTO saveUser(Usuario usuarioRegistro) {
         if (usuarioRegistro.getIsAdmin()) {
@@ -62,31 +58,44 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (repositorio.findByUsuarioCorreo(usuarioRegistro.getUsuarioCorreo()).isPresent()) {
             throw new DataIntegrityViolationException("Ya existe un usuario con ese correo");
         } else {
-            Usuario usuarioNuevo = repositorio.save(usuarioRegistro);
-            log.info("Usuario registrado: " + usuarioNuevo);
-            return this.usuarioMapper.BDaDTO(usuarioNuevo);
+            try {
+                Usuario usuarioNuevo = repositorio.save(usuarioRegistro);
+                log.info("Usuario registrado: " + usuarioNuevo);
+                return this.usuarioMapper.BDaDTO(usuarioNuevo);
+            } catch (PersistenceException ex) {
+                throw new PersistenceException("Error guardando un usuario en la BD: " + ex);
+            }
         }
     }
 
+    @Transactional
     @Override
     public UsuarioDTO updateById(Long id, Usuario usuarioActualizado) {
         Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id: " + id));
         if (repositorio.findByUsuarioCorreo(usuarioActualizado.getUsuarioCorreo()).isPresent() && !id.equals(repositorio.findByUsuarioCorreo(usuarioActualizado.getUsuarioCorreo()).get().getUsuarioId())) {
             throw new DataIntegrityViolationException("Ya existe un usuario con ese correo");
         } else {
-            usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
-            usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
-            log.info("Usuario con ID " + id + " actualizado: " + usuario);
-            return this.usuarioMapper.BDaDTO(usuario);
+            try {
+                usuario.setUsuarioCorreo(usuarioActualizado.getUsuarioCorreo());
+                usuario.setUsuarioClave(usuarioActualizado.getUsuarioClave());
+                log.info("Usuario con ID " + id + " actualizado: " + usuario);
+                return this.usuarioMapper.BDaDTO(usuario);
+            } catch (PersistenceException ex) {
+                throw new PersistenceException("Error con la DB al actualizar un usuario: " + ex);
+            }
         }
     }
 
+    @Transactional
     @Override
     public UsuarioDTO deleteById(Long id) {
         Usuario usuario = repositorio.findById(id).orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con el id:" + id));
-        repositorio.deleteById(id);
-        log.info("Usuario con ID " + id + " eliminado");
-        return this.usuarioMapper.BDaDTO(usuario);
+        try {
+            repositorio.deleteById(id);
+            log.info("Usuario con ID " + id + " eliminado");
+            return this.usuarioMapper.BDaDTO(usuario);
+        } catch (PersistenceException ex) {
+            throw new PersistenceException("Error con la DB al eliminar un usuario: " + ex);
+        }
     }
-
 }

@@ -7,7 +7,7 @@ import com.libreriasanjuan.apirestspringboot.models.Usuario;
 import com.libreriasanjuan.apirestspringboot.services.UsuarioServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,18 +15,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
+@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api")
 @Api(value = "Usuarios", tags = "CRUD de usuarios")
 public class UsuarioController {
 
     private final UsuarioServiceImpl usuarioServiceImpl;
-
-    @Autowired
-    public UsuarioController(UsuarioServiceImpl usuarioServiceImpl) {
-        this.usuarioServiceImpl = usuarioServiceImpl;
-    }
 
     @GetMapping("/usuarios")
     @ApiOperation(value = "Traer a todos los usuarios")

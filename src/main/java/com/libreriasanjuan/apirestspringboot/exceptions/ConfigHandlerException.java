@@ -15,15 +15,15 @@ import java.util.Objects;
 @Slf4j
 public class ConfigHandlerException {
     @ExceptionHandler(AuthenticationErrorException.class)
-    protected ResponseEntity<?> handleAuthenticationErrorException(AuthenticationErrorException ex, HandlerMethod handlerMethod) {
+    protected ResponseEntity<String> handleAuthenticationErrorException(AuthenticationErrorException ex, HandlerMethod handlerMethod) {
         log.warn("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    protected ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HandlerMethod handlerMethod) {
+    protected ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HandlerMethod handlerMethod) {
         if (Objects.equals(ex.getMessage(), "Acceso no autorizado")) {
-            log.error("Posible ataque en la creación de usuario: " + ex);
+            log.error("Posible ataque en la creación de usuario: " + ex.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
         } else {
             log.warn("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
@@ -32,7 +32,7 @@ public class ConfigHandlerException {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<?> handleAuthenticationErrorException(ResourceNotFoundException ex, HandlerMethod handlerMethod) {
+    protected ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex, HandlerMethod handlerMethod) {
         log.warn("Error: '" + ex.getMessage() + "' en " + handlerMethod.getBeanType().getSimpleName() + "." + handlerMethod.getMethod().getName());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }

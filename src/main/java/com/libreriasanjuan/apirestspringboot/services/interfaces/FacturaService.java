@@ -1,9 +1,9 @@
 package com.libreriasanjuan.apirestspringboot.services.interfaces;
 
 import com.libreriasanjuan.apirestspringboot.dto.FacturaDTO;
-import com.libreriasanjuan.apirestspringboot.models.Factura;
+import com.libreriasanjuan.apirestspringboot.dto.FacturaResponse;
 
 public interface FacturaService {
-    Factura saveFactura(FacturaDTO facturaDTO);
+    FacturaResponse saveFactura(FacturaDTO facturaDTO);
 
 }
